@@ -38,12 +38,15 @@ class ContractAgent:
         output = agent.invoke(
             {"messages": [f"スマートコントラクトを呼び出して、名前を設定してください。設定する名前は{state.name}です。"]},
         )
+        message = output["messages"][-1].content
+        name = state.name
+        status = "completed"
 
-        return {"messages": [output["messages"]], "status": "completed"}
+        return {"messages": message, "name": name, "status": status}
 
     def get_name_agent(self, state: State):
         class OutputJson(BaseModel):
-            messages: List[str] = Field(..., description="messages")
+            messages: str = Field(..., description="messages")
             status: Literal["trust", "completed"] = Field(..., description="スマートコントラクトを呼び出して、状態を取得した結果。呼び出して値が取得できたらcompleted、取得できなかったらtrustとする。")
 
         # Define the output parser
@@ -75,9 +78,16 @@ class ContractAgent:
             state_modifier=prompt,
         )
 
+        # Call the agent
         output = agent.invoke(
-            {"messages": ["スマートコントラクトを呼び出して、名前を取得してください。"]}
+            {"messages": ["スマートコントラクトを呼び出して、名前(name)を取得してください。"]}
         )
-        status = json.loads(output["messages"][-1].content)["status"]
 
-        return {"message": [output["messages"]], "status": status}
+        # Parse the output
+        output_json = json.loads(output["messages"][-1].content)
+        message = output_json["messages"]
+        status = output_json["status"]
+        name = state.name
+    
+
+        return {"messages": message, "name": name, "status": status}

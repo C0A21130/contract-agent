@@ -15,7 +15,7 @@ model = AzureChatOpenAI(
     openai_api_version=os.environ["AZURE_OPENAI_API_VERSION"],
 )
 
-RPC_URL = "http://10.203.92.71:8545"
+RPC_URL = "http://localhost:8545"
 CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
 
 tools = get_tools(
@@ -24,45 +24,44 @@ tools = get_tools(
     private_key=os.environ["PRIVATE_KEY"],
 )
 
-# def test_write_agent():
-#     contract_agent = ContractAgent(model=model, tools=tools)
-#     state = State(
-#         message=["test_message"],
-#         name="test_name",
-#         status="trust",
-#     )
-#     response = contract_agent.put_name_agent(state=state)
+def test_write_agent():
+    contract_agent = ContractAgent(model=model, tools=tools)
+    state = State(
+        message=["test_message"],
+        name="test_name",
+        status="trust",
+    )
+    response = contract_agent.put_name_agent(state=state)
 
-#     for res in response["messages"]:
-#         print(res)
-#         print("-------------")
-#     print(response["status"])
+    print("message: ", response["message"])
+    print("status: ", response["status"])
 
-#     assert response["status"] == "completed"
-#     assert response["messages"] is not None
+    assert type(response["message"]) == str
+    assert response["status"] == "completed"
 
 def test_read_agent():
+    state = State(
+        messages=["test_message"],
+        name="test_name",
+        status="trust",
+    )
     contract_agent = ContractAgent(model=model, tools=tools)
-    response = contract_agent.get_name_agent(state=None)
-    for res in response["message"]:
-        print(res)
-        print("-------------")
+    response = contract_agent.get_name_agent(state=state)
+    print("message: ", response["messages"])
+    print("status: ", response["status"])
+    print("name: ", response["name"])
 
-    print(response["status"])
-
+    assert response["messages"] is not None
     assert response["status"] == "completed" or response["status"] == "trust"
-    assert response["message"] is not None
+    assert response["name"] is not None
 
 def test_trust_agent():
     trust_agent = TrustAgent(model=model)
-    response = trust_agent.eval_trust(state=None)
+    response = trust_agent.eval_trust_agent(state=None)
 
-    for res in response["message"]:
-        print(res)
-        print("-------------")
-    print(response["status"])
-    print(response["name"])
+    print("messages: ", response["messages"])
+    print("status: ", response["status"])
 
     assert response["status"] == "put" or response["status"] == "fetch"
-    assert response["message"] is not None
+    assert response["messages"] is not None
     assert response["name"] is not None

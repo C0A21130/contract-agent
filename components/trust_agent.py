@@ -8,7 +8,7 @@ class TrustAgent:
     def __init__(self, model):
         self.model = model
 
-    def eval_trust(self, state: State):
+    def eval_trust_agent(self, state: State):
 
         class OutputJson(BaseModel):
             messages: List[str] = Field(..., description="messages")
@@ -51,4 +51,4 @@ class TrustAgent:
         name = output.name
         status = output.status
 
-        return {"message": [message], "name": name, "status": status}
+        return {"messages": message, "name": name, "status": status}

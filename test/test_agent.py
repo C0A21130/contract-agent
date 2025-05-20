@@ -15,8 +15,8 @@ model = AzureChatOpenAI(
     openai_api_version=os.environ["AZURE_OPENAI_API_VERSION"],
 )
 
-RPC_URL = "http://localhost:8545"
-CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+RPC_URL = os.environ["RPC_URL"]
+CONTRACT_ADDRESS = os.environ["CONTRACT_ADDRESS"]
 
 tools = get_tools(
     rpc_url=RPC_URL,

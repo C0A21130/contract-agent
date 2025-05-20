@@ -12,10 +12,6 @@ from tools.tools import get_tools
 # Load environment variables from .env file
 load_dotenv(verbose=True)
 
-# Set Smart Contract address and ABI
-rpc_url = 'http://localhost:8545'
-contract_address = '0x5FbDB2315678afecb367f032d93F642f64180aa3'
-
 # set model
 model = AzureChatOpenAI(
     azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
@@ -25,8 +21,8 @@ model = AzureChatOpenAI(
 
 # Set tools
 tools = get_tools(
-    rpc_url=rpc_url,
-    contract_address=contract_address,
+    rpc_url=os.environ["RPC_URL"],
+    contract_address=os.environ["CONTRACT_ADDRESS"],
     private_key=os.environ["PRIVATE_KEY"],
 )
 

@@ -1,8 +1,4 @@
-import json
-from typing import List, Literal
-from pydantic import BaseModel, Field
-from langchain.output_parsers import PydanticOutputParser
-from langgraph.prebuilt import create_react_agent
+from typing import List
 from langchain_core.prompts import ChatPromptTemplate
 
 from components.state import State
@@ -13,46 +9,8 @@ class ContractAgent:
         self.model = model
         self.tools = tools
 
-    def put_name_agent(self, state: State):
-
-        # Define the prompt
-        prompt = ChatPromptTemplate.from_messages(
-            [
-                (
-                    'system',
-                    """
-                    与えられたinputに従ってスマートコントラクトを呼び出してください
-                    """,
-                ),
-                ("placeholder", "{messages}"),
-            ]
-        )
-
-        # Create Agent
-        agent = create_react_agent(
-            model=self.model,
-            tools=self.tools,
-            state_modifier=prompt,
-        )
-
-        output = agent.invoke(
-            {"messages": [f"スマートコントラクトを呼び出して、名前を設定してください。設定する名前は{state.name}です。"]},
-        )
-        message = output["messages"][-1].content
-        name = state.name
-        status = "completed"
-
-        return {"messages": message, "name": name, "status": status}
-
-    def get_name_agent(self, state: State):
-        class OutputJson(BaseModel):
-            messages: str = Field(..., description="messages")
-            status: Literal["trust", "completed"] = Field(..., description="スマートコントラクトを呼び出して、状態を取得した結果。呼び出して値が取得できたらcompleted、取得できなかったらtrustとする。")
-
-        # Define the output parser
-        output_parser = PydanticOutputParser(pydantic_object=OutputJson)
-        format_instructions = output_parser.get_format_instructions()
-
+    def get_agent(self, state: State):
+        
         # Define the prompt
         prompt_template = ChatPromptTemplate.from_messages(
             [
@@ -60,34 +18,39 @@ class ContractAgent:
                     'system',
                     """
                     与えられたinputに従ってスマートコントラクトを呼び出してください
-
-                    {format_instructions}
                     """,
                 ),
-                ("placeholder", "{messages}"),
+                ("human", "{input}"),
             ]
         )
-        prompt = prompt_template.partial(
-            format_instructions=format_instructions
+        if(state.status == "put"):
+            human_input = f"""
+                スマートコントラクトを呼び出して、NFT(Non-Fungible Token)を発行してください。
+                以下の情報を含めてください:
+                - トークンの名前: {state.token_name}
+                - トークンの所有者のアドレス: {state.address}
+            """
+        elif(state.status == "fetch"):
+            human_input = f"スマートコントラクトを呼び出して、過去のNFT(Non-Fungible Token)の取引履歴を取得してください。address: {state.address}"
+        prompt = prompt_template.format_messages(
+            input=human_input
         )
 
-        # Create the agent
-        agent = create_react_agent(
-            model=self.model,
-            tools=self.tools,
-            state_modifier=prompt,
-        )
-
-        # Call the agent
-        output = agent.invoke(
-            {"messages": ["スマートコントラクトを呼び出して、名前(name)を取得してください。"]}
-        )
-
-        # Parse the output
-        output_json = json.loads(output["messages"][-1].content)
-        message = output_json["messages"]
-        status = output_json["status"]
-        name = state.name
-    
-
-        return {"messages": message, "name": name, "status": status}
+        # execute the model with tools
+        model_with_tool = self.model.bind_tools(self.tools)
+        output = model_with_tool.invoke(prompt)
+        
+        # extract tool calls from the output
+        if not output.tool_calls:
+            return {"messages": "No tool calls were made.", "status": "trust"}
+        else:
+            for tool_call in output.tool_calls:
+                if tool_call["name"] == "put_token":
+                    token_id = self.tools[2].invoke(tool_call["args"])
+                    message = f"NFTが発行されました。トークンID: {token_id}"
+                    tokens = state.tokens
+                elif tool_call["name"] == "fetch_tokens":
+                    tokens = self.tools[3].invoke(tool_call["args"])
+                    message = f"取引履歴が取得されました。トークンの数: {len(tokens)}"
+        
+        return {"messages": message, "tokens": tokens, "address": state.address, "token_name": state.token_name, "status": "trust"}

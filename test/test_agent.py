@@ -24,36 +24,51 @@ tools = get_tools(
     private_key=os.environ["PRIVATE_KEY"],
 )
 
-def test_write_agent():
+def test_put_token_agent():
     contract_agent = ContractAgent(model=model, tools=tools)
-    state = State(
-        message=["test_message"],
-        name="test_name",
-        status="trust",
-    )
-    response = contract_agent.put_name_agent(state=state)
-
-    print("message: ", response["message"])
-    print("status: ", response["status"])
-
-    assert type(response["message"]) == str
-    assert response["status"] == "completed"
-
-def test_read_agent():
     state = State(
         messages=["test_message"],
-        name="test_name",
-        status="trust",
+        tokens=[],
+        address="0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        token_name="TEST TOKEN",
+        status="put",
     )
+    response = contract_agent.get_agent(state=state)
+
+    print("messages: ", response["messages"])
+
+    assert type(response["messages"]) == str
+    assert response["tokens"] is not None
+    assert response["status"] == "trust"
+
+def test_fetch_token_agent():
     contract_agent = ContractAgent(model=model, tools=tools)
-    response = contract_agent.get_name_agent(state=state)
+    state = State(
+        messages=["test_message"],
+        tokens=[],
+        address="0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        token_name="TEST TOKEN",
+        status="fetch",
+    )
+    response = contract_agent.get_agent(state=state)
+
     print("message: ", response["messages"])
     print("status: ", response["status"])
-    print("name: ", response["name"])
+    for token in response["tokens"]:
+        print("---------------------")
+        print("Token from address: ", token.from_address)
+        print("Token to address: ", token.to_address)
+        print("Token ID: ", token.token_id)
+        print("Token name: ", token.token_name)
 
-    assert response["messages"] is not None
-    assert response["status"] == "completed" or response["status"] == "trust"
-    assert response["name"] is not None
+    assert type(response["messages"]) == str
+    assert response["status"] == "trust"
+    assert response["tokens"] is not None
+    for token in response["tokens"]:
+        assert type(token.from_address) == str
+        assert type(token.to_address) == str
+        assert type(token.token_id) == int
+        assert type(token.token_name) == str
 
 def test_trust_agent():
     trust_agent = TrustAgent(model=model)

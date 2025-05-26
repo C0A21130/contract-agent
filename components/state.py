@@ -1,12 +1,20 @@
 from typing import Annotated, List, Literal
-from typing_extensions import TypedDict
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from langgraph.graph.message import add_messages
+
+class Token(BaseModel):
+    # This class is used to represent a token.
+    from_address: str
+    to_address: str
+    token_id: int
+    token_name: str
 
 class State(BaseModel):
     """
     State for the state machine.
     """
     messages: Annotated[List[str], add_messages] = []
-    name: str = ""
+    tokens: List[Token] = []
+    address: str = ""
+    token_name: str = ""
     status: Literal["start", "fetch", "put", "trust", "completed"] = "start"

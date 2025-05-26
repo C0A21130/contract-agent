@@ -65,8 +65,8 @@ def get_tools(rpc_url: str, contract_address: str, private_key: str):
             return token_id
 
     @tool
-    def fetch_token(
-        address: Annotated[str, "The address to fetch tokens from"],
+    def fetch_tokens(
+        address: Annotated[str | None, "The address to fetch tokens from"],
     ) -> List[Token]:
         """
         This tool is called smart contract.
@@ -87,4 +87,4 @@ def get_tools(rpc_url: str, contract_address: str, private_key: str):
         tokens = contract.fetch_tokens()
         return tokens
 
-    return [add, sub, put_token, fetch_token]
+    return [add, sub, put_token, fetch_tokens]

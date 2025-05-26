@@ -5,9 +5,10 @@ from components.state import State
 
 class ContractAgent:
 
-    def __init__(self, model, tools: List):
+    def __init__(self, model, tools: List, handler=None):
         self.model = model
         self.tools = tools
+        self.config = {"callbacks": [handler]}
 
     def get_agent(self, state: State):
         
@@ -38,7 +39,10 @@ class ContractAgent:
 
         # execute the model with tools
         model_with_tool = self.model.bind_tools(self.tools)
-        output = model_with_tool.invoke(prompt)
+        if self.config["callbacks"][0] == None:
+            output = model_with_tool.invoke(prompt)
+        else:
+            output = model_with_tool.invoke(prompt, config=self.config)
         
         # extract tool calls from the output
         if not output.tool_calls:
@@ -53,4 +57,10 @@ class ContractAgent:
                     tokens = self.tools[3].invoke(tool_call["args"])
                     message = f"取引履歴が取得されました。トークンの数: {len(tokens)}"
         
-        return {"messages": message, "tokens": tokens, "address": state.address, "token_name": state.token_name, "status": "trust"}
+        return {
+            "messages": message,
+            "tokens": tokens,
+            "address": state.address,
+            "token_name": state.token_name,
+            "status": "completed" if state.status == "put" else "trust"
+        }

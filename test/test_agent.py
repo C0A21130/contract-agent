@@ -1,10 +1,11 @@
 import os
 from dotenv import load_dotenv
 from langchain_openai import AzureChatOpenAI
+import pytest
 from tools.tools import get_tools
 from components.contract_agent import ContractAgent
 from components.trust_agent import TrustAgent
-from components.state import State
+from components.state import State, Token
 
 load_dotenv(verbose=True)
 
@@ -39,7 +40,7 @@ def test_put_token_agent():
 
     assert type(response["messages"]) == str
     assert response["tokens"] is not None
-    assert response["status"] == "trust"
+    assert response["status"] == "completed"
 
 def test_fetch_token_agent():
     contract_agent = ContractAgent(model=model, tools=tools)
@@ -70,13 +71,52 @@ def test_fetch_token_agent():
         assert type(token.token_id) == int
         assert type(token.token_name) == str
 
-def test_trust_agent():
+@pytest.mark.parametrize(
+    [
+        "state"
+    ],
+    [
+        pytest.param(
+            State(
+                messages=["test_message"],
+                tokens=[
+                    Token(
+                        from_address="0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
+                        to_address="0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+                        token_id=1,
+                        token_name="Test Token 1"
+                    )
+                ],
+                address="",
+                token_name="",
+                status="trust",
+            ),
+            id="trust_with_tokens",
+        ),
+        pytest.param(
+            State(
+                messages=["test_message"],
+                tokens=[],
+                address="",
+                token_name="",
+                status="trust",
+            ),
+            id="trust_without_tokens",
+        ),
+    ],
+)
+def test_trust_agent(state):
     trust_agent = TrustAgent(model=model)
-    response = trust_agent.eval_trust_agent(state=None)
+    response = trust_agent.get_agent(
+        state=state
+    )
 
     print("messages: ", response["messages"])
+    print("address: ", response["address"])
+    print("token_name: ", response["token_name"])
     print("status: ", response["status"])
 
+    assert type(response["messages"]) == str
+    assert type(response["address"]) == str
+    assert type(response["token_name"]) == str
     assert response["status"] == "put" or response["status"] == "fetch"
-    assert response["messages"] is not None
-    assert response["name"] is not None

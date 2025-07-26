@@ -18,7 +18,7 @@ def test_set_name():
 
 def test_put_token():
     tools = get_tools(rpc_url=RPC_URL, contract_address=CONTRACT_ADDRESS, private_key=PRIVATE_KEY)
-    put_token_tool = tools[2]
+    put_token_tool = tools[0]
     to_address = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
     token_name = "Test Token"
     token_id = put_token_tool.invoke({"to_address": to_address, "token_name": token_name})
@@ -27,8 +27,9 @@ def test_put_token():
     
 def test_fetch_token():
     tools = get_tools(rpc_url=RPC_URL, contract_address=CONTRACT_ADDRESS, private_key=PRIVATE_KEY)
-    fetch_token_tool = tools[3]
+    fetch_token_tool = tools[1]
     tokens = fetch_token_tool.invoke({"address": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"})
+    print(tokens)
     assert type(tokens) == list
     assert len(tokens) > 0
     for token in tokens:

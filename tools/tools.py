@@ -2,7 +2,7 @@ from typing import Annotated, List
 from langchain_core.tools import tool
 from tools.contract import Contract, Token
 
-def get_tools(rpc_url: str, contract_address: str, private_key: str):
+def get_tools(rpc_url: str, contract_address: str, private_key: str) -> List[tool]:
     
     # Set Smart Contract Instance
     contract = Contract(
@@ -12,47 +12,13 @@ def get_tools(rpc_url: str, contract_address: str, private_key: str):
     )
 
     @tool
-    def add(x: int, y: int) -> int:
-        """Add two numbers together."""
-        return x + y
-
-    @tool
-    def sub(x: int, y: int) -> int:
-        """Substract two numbers together."""
-        return x - y
-    
-    @tool
-    def set_name(name: str) -> str:
-        """
-        This tool is called smart contract.
-        Set name in smart contract.
-        Args:
-            name (str): User's name.
-        Returns:
-            str: Confirmation message.
-        """
-        contract.set_name(name)
-        return f"Name set to {name} in smart contract."
-
-    @tool
-    def get_name() -> str:
-        """
-        This tool is called smart contract.
-        Get User name from smart contract.
-        Returns:
-            str: User's name.
-        """
-        name = contract.get_name()
-        return name
-
-    @tool
     def put_token(
         to_address: Annotated[str, "The address to mint the token to"],
         token_name: Annotated[str, "The name of the token to mint"],
     ) -> int:
         """
         This tool is called smart contract.
-        Mint a token to the specified address.
+        Mint a NFT to the specified address.
         Returns:
             int: The token ID of the minted NFT.
         """
@@ -70,7 +36,7 @@ def get_tools(rpc_url: str, contract_address: str, private_key: str):
     ) -> List[Token]:
         """
         This tool is called smart contract.
-        Fetch all NFT(Non Fungible Token) for the address.
+        Fetch all NFTs transaction history for the address.
         Returns:
             List[Token]:
             Token: {
@@ -87,4 +53,4 @@ def get_tools(rpc_url: str, contract_address: str, private_key: str):
         tokens = contract.fetch_tokens()
         return tokens
 
-    return [add, sub, put_token, fetch_tokens]
+    return [put_token, fetch_tokens]

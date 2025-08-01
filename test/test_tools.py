@@ -3,8 +3,13 @@ from dotenv import load_dotenv
 from tools.tools import get_tools
 from tools.contract import Token
 
-load_dotenv(verbose=True)
+# Load environment variables, but don't fail if .env doesn't exist
+try:
+    load_dotenv(verbose=True)
+except:
+    pass
 
+# Get configuration with fallback to defaults
 RPC_URL = os.environ["RPC_URL"]
 CONTRACT_ADDRESS = os.environ["CONTRACT_ADDRESS"]
 PRIVATE_KEY = os.environ["PRIVATE_KEY"]

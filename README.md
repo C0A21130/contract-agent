@@ -22,12 +22,12 @@ stateDiagram-v2
     [*] --> Thinking
     Thinking --> Tools : 次の行動を選択
     Tools --> Thinking
-    Tools --> PredictScore : 信用スコアが不足
-    PredictScore --> Tools
-    Tools --> FetchData : 外部データが不足
-    FetchData --> Tools
-    Thinking --> RegistScore : ユーザーの認可完了
-    RegistScore --> [*]
+    Tools --> Fetch : NFT発行情報が不十分
+    Fetch --> Tools
+    Tools --> Put : NFT発行が可能
+    Put --> Tools
+    Thinking --> Complete: NFTの発行完了
+    Complete --> [*]
 ```
 
 以下はディレクトリ構成である

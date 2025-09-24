@@ -1,6 +1,7 @@
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.messages import HumanMessage
 from langchain_core.output_parsers import PydanticOutputParser
+from typing import Literal
 
 from components.model import State, AgentConfig, OutputJson
 
@@ -17,8 +18,27 @@ class ContractAgent:
             self.config = {"callbacks": [None]}
         else:
             self.config = {"callbacks": [handler]}
+
+    @staticmethod
+    def route(state: State) -> Literal["fetch", "put", "thinking", "completed"]:
+        """
+        Route the state to the appropriate agent based on the status.
+        """
+        if state.status == "fetch":
+            return "fetch"
+        elif state.status == "put":
+            return "put"
+        elif state.status == "thinking":
+            return "thinking"
+        elif state.status == "completed":
+            return "completed"
+        else:
+            return "completed"
         
     def get_agent(self, state: State) -> State:
+        """
+        Decide the next action based on the current state.
+        """
         # Define the output parser
         output_parser = PydanticOutputParser(pydantic_object=OutputJson)
         format_instructions = output_parser.get_format_instructions()

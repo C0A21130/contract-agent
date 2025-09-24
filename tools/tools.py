@@ -1,7 +1,8 @@
+from typing import Annotated, List
 from langchain_core.tools import tool
-from tools.contract import Contract
+from tools.contract import Contract, Token
 
-def get_tools(rpc_url: str, contract_address: str, private_key: str):
+def get_tools(rpc_url: str, contract_address: str, private_key: str) -> List[tool]:
     
     # Set Smart Contract Instance
     contract = Contract(
@@ -10,38 +11,46 @@ def get_tools(rpc_url: str, contract_address: str, private_key: str):
         private_key=private_key,
     )
 
-    # @tool
-    # def add(x: int, y: int) -> int:
-    #     """Add two numbers together."""
-    #     return x + y
-
-    # @tool
-    # def sub(x: int, y: int) -> int:
-    #     """Substract two numbers together."""
-    #     return x - y
-    
     @tool
-    def set_name(name: str) -> str:
+    def put_token(
+        to_address: Annotated[str, "The address to mint the token to"],
+        token_name: Annotated[str, "The name of the token to mint"],
+    ) -> int:
         """
         This tool is called smart contract.
-        Set name in smart contract.
-        Args:
-            name (str): User's name.
+        Mint a NFT to the specified address.
         Returns:
-            str: Confirmation message.
+            int: The token ID of the minted NFT.
         """
-        contract.set_name(name)
-        return f"Name set to {name} in smart contract."
+        from_address = contract.get_address()
+        token_id = contract.mint(from_address, token_name)
+        if token_id == -1:
+            return -1
+        else:
+            contract.transfer(from_address, to_address, token_id)
+            return token_id
 
     @tool
-    def get_name() -> str:
+    def fetch_tokens(
+        address: Annotated[str | None, "The address to fetch tokens from"],
+    ) -> List[Token]:
         """
         This tool is called smart contract.
-        Get User name from smart contract.
+        Fetch all NFTs transaction history for the address.
         Returns:
-            str: User's name.
+            List[Token]:
+            Token: {
+                "from_address": str,
+                "to_address": str,
+                "token_id": int,
+                "token_name": str,
+            }
+        1. from_address: The address to which the token to transfer.
+        2. to_address: The address where you received the NFT.
+        3. token_id: The ID of the token.
+        4. token_name: The name of the token.
         """
-        name = contract.get_name()
-        return name
+        tokens = contract.fetch_tokens()
+        return tokens
 
-    return [set_name, get_name]
+    return [put_token, fetch_tokens]

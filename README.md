@@ -19,15 +19,11 @@
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Thinking
-    Thinking --> Tools : 次の行動を選択
-    Tools --> Thinking
-    Tools --> Fetch : NFT発行情報が不十分
-    Fetch --> Tools
-    Tools --> Put : NFT発行が可能
-    Put --> Tools
-    Thinking --> Complete: NFTの発行完了
-    Complete --> [*]
+    [*] --> FetchTokens
+    FetchTokens --> PutToken : NFT発行可能
+    FetchTokens --> Reporting : NFT発行不可
+    PutToken --> Reporting
+    Reporting --> [*]
 ```
 
 以下はディレクトリ構成である

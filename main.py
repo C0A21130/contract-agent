@@ -14,26 +14,25 @@ def build_agent_graph(contract_agent: ContractAgent):
     """
     Build the agent graph with the ContractAgent.
     """
+    # Initialize the state graph
     graph_builder = StateGraph(State)
 
     # Add the ContractAgent to the graph
-    graph_builder.add_node("put", contract_agent.get_bind_tool_agent)
-    graph_builder.add_node("fetch", contract_agent.get_bind_tool_agent)
-    graph_builder.add_node("thinking", contract_agent.get_agent)
-    graph_builder.add_node("completed", contract_agent.get_agent)
+    graph_builder.add_node("fetchTokens", contract_agent.get_agent)
+    graph_builder.add_node("putToken", contract_agent.get_agent)
+    graph_builder.add_node("reporting", contract_agent.get_agent)
 
     # Add the thinking node to the graph
-    graph_builder.add_edge(START, "thinking")
-    graph_builder.add_conditional_edges("thinking", contract_agent.route)
-    graph_builder.add_edge("fetch", "thinking")
-    graph_builder.add_edge("put", "thinking")
-    graph_builder.add_edge("completed", END)
+    graph_builder.add_edge(START, "fetchTokens")
+    graph_builder.add_conditional_edges("fetchTokens", contract_agent.route)
+    graph_builder.add_edge("putToken", "reporting")
+    graph_builder.add_edge("reporting", END)
 
+    # Compile the graph
     graph = graph_builder.compile()
     return graph
 
 def main():
-
     # set model
     model = AzureChatOpenAI(
         azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
@@ -61,24 +60,25 @@ def main():
         config=AgentConfig(
             tools=tools,
             name="田中",
-            roll="""
-            """
+            roll="私はソフトウェアエンジニアです．他のユーザーからの貢献に対してNFTを送信して貢献を評価します．"
         ),
         handler=langfuse_handler
     )
 
     state = State(
         messages=[],
-        board=[],
         tokens=[],
         address="",
         token_name="",
-        status="thinking",
+        status="fetchTokens"
     )
     graph = build_agent_graph(contract_agent=contract_agent)
     streams = graph.stream(state, config={"callbacks": [langfuse_handler]})
+    result = None
     for stream in streams:
+        result = stream
         print(stream)
+    print("result:", result)
 
 if __name__ == "__main__":
     main()

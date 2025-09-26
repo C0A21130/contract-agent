@@ -28,10 +28,4 @@ class State(BaseModel):
     tokens: List[Token] = []
     address: str = ""
     token_name: str = ""
-    status: Literal["fetch", "put", "thinking", "completed"] = "thinking"
-
-class OutputJson(BaseModel):
-    message: str = Field(..., description="取引の内容や判断した理由や過程についても説明してください。")
-    address: str = Field(..., description="NFTを発行して転送するユーザーのウォレットアドレスを示す。ユーザーのアドレスは、アドレス一覧から選択される。")
-    token_name: str = Field(..., description="提案する料理名やおすすめの料理名、感謝などを示す。判断した理由や過程についても示してください。")
-    status: Literal["fetch", "put", "completed"] = Field(..., description="NFT取引情報が不足している場合はfetch、情報が十分であればputとする。終了する場合はcompletedとする。")
+    status: Literal["fetchTokens", "putToken", "reporting", "__end__"] = "fetchTokens"

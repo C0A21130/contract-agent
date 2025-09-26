@@ -17,8 +17,9 @@ def get_tools(rpc_url: str, contract_address: str, private_key: str) -> List[too
         token_name: Annotated[str, "The name of the token to mint"],
     ) -> int:
         """
-        This tool is called smart contract.
+        This tool is called smart contract for minting the NFT.
         Mint a NFT to the specified address.
+        
         Returns:
             int: The token ID of the minted NFT.
         """
@@ -37,6 +38,7 @@ def get_tools(rpc_url: str, contract_address: str, private_key: str) -> List[too
         """
         This tool is called smart contract.
         Fetch all NFTs transaction history for the address.
+
         Returns:
             List[Token]:
             Token: {
@@ -53,4 +55,29 @@ def get_tools(rpc_url: str, contract_address: str, private_key: str) -> List[too
         tokens = contract.fetch_tokens()
         return tokens
 
-    return [put_token, fetch_tokens]
+    @tool
+    def reporting(
+        token_list: Annotated[str, "The document for list of currently NFTs"],
+        token: Annotated[str, "The document for information of the token to be issued"],
+        reason: Annotated[str, "The document for reason why the token is to be issued"],
+        owner: Annotated[str, "The document for information of the owner"],
+    ) -> str:
+        """
+        Report the current state of the agent.
+        The report will be written in Japanese.
+        """
+        report = ""
+        report += f"トークン一覧:\n {token_list}\n"
+        report += f"発行するトークン:\n {token}\n"
+        report += f"トークンを発行する理由:\n {reason}\n"
+        report += f"送信先アドレス:\n {owner}\n"
+        return report
+
+    @tool
+    def get_address() -> str:
+        """
+        Get my wallet address.
+        """
+        return contract.get_address()
+
+    return [put_token, fetch_tokens, reporting, get_address]
